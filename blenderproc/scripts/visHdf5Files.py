@@ -8,7 +8,7 @@ import sys
 import json
 import re
 
-default_rgb_keys = ["colors", "normals", "diffuse", "nocs"]
+default_rgb_keys = ["colors", "normals", "diffuse", "glossy", "nocs"]
 default_flow_keys = ["forward_flow", "backward_flow"]
 default_segmap_keys = ["segmap", ".*_segmaps"]
 default_segcolormap_keys = ["segcolormap"]

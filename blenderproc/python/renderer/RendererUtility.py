@@ -434,6 +434,41 @@ def enable_diffuse_color_output(output_dir: Optional[str] = None, file_prefix: s
         "version": "2.0.0"
     })
 
+def enable_glossy_color_output(output_dir: Optional[str] = None, file_prefix: str = "glossy_",
+                                output_key: str = "glossy"):
+    """ Enables writing glossy color (albedo) images.
+
+    Glossy color images will be written in the form of .png files during the next rendering.
+
+    :param output_dir: The directory to write files to, if this is None the temporary directory is used.
+    :param file_prefix: The prefix to use for writing the files.
+    :param output_key: The key to use for registering the glossy color output.
+    """
+    print("Glossy color output enabled.")
+    if output_dir is None:
+        output_dir = Utility.get_temporary_directory()
+
+    bpy.context.scene.render.use_compositing = True
+    bpy.context.scene.use_nodes = True
+    tree = bpy.context.scene.node_tree
+    links = tree.links
+
+    bpy.context.view_layer.use_pass_glossy_color = True
+    render_layer_node = Utility.get_the_one_node_with_type(tree.nodes, 'CompositorNodeRLayers')
+    final_output = render_layer_node.outputs["GlossCol"]
+
+    output_file = tree.nodes.new('CompositorNodeOutputFile')
+    output_file.base_path = output_dir
+    output_file.format.file_format = "PNG"
+    output_file.file_slots.values()[0].path = file_prefix
+    links.new(final_output, output_file.inputs['Image'])
+
+    Utility.add_output_entry({
+        "key": output_key,
+        "path": os.path.join(output_dir, file_prefix) + "%04d" + ".png",
+        "version": "2.0.0"
+    })
+
 
 def map_file_format_to_file_ending(file_format: str) -> str:
     """ Returns the files endings for a given blender output format.
@@ -470,7 +505,7 @@ def render(output_dir: Optional[str] = None, file_prefix: str = "rgb_", output_k
     if output_dir is None:
         output_dir = Utility.get_temporary_directory()
     if load_keys is None:
-        load_keys = {'colors', 'distance', 'normals', 'diffuse', 'depth'}
+        load_keys = {'colors', 'distance', 'normals', 'diffuse', 'depth', 'glossy'}
         keys_with_alpha_channel = {'colors'} if bpy.context.scene.render.film_transparent else None
 
     if output_key is not None:
